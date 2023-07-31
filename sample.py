@@ -15,7 +15,6 @@ db_config = {
 # http://localhost/phpmyadmin
 # for database
 
-
 # Create a connection to the database
 connection = pymysql.connect(**db_config)
 
@@ -54,6 +53,82 @@ def get_users():
         # Close the cursor
         cursor.close()
 
+@app.route('/get-concerns', methods=['POST'])
+def get_concerns():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+    print(user_data)
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM concern WHERE requested_by_user_id=%s"
+        cursor.execute(query, (user_data['id']))
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+        print('hello', rows)
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            print(row)
+            user = {
+                'id': row[0],
+                'requested_by_user_id': row[1],
+                'name_reported': row[2],
+                'reason': row[3],
+                'schedule_hearing': row[4],
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/search-concerns', methods=['POST'])
+def search_concerns():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM concern WHERE name_reported LIKE %s"
+        search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
+        cursor.execute(query, (search_value,))
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+        print('hello', rows)
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            print(row)
+            user = {
+                'id': row[0],
+                'requested_by_user_id': row[1],
+                'name_reported': row[2],
+                'reason': row[3],
+                'schedule_hearing': row[4],
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
 @app.route('/register', methods=['POST'])
 def register_user():
     user_data = request.get_json()
@@ -72,18 +147,33 @@ def register_user():
 
     finally:
         # Close the cursor
-        cursor.close()        
+        cursor.close()    
+
+@app.route('/report-user', methods=['POST'])
+def report_user():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("INSERT INTO concern (requested_by_user_id, name_reported, reason) VALUES (%s, %s, %s)",
+                   (user_data['requested_by_user_id'], user_data['name_reported'], user_data['reason']))
+        connection.commit()
+
+        return jsonify({'data': 'Successfully registered'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()         
 
 @app.route('/login', methods=['POST'])
 def login():
     user_data = request.get_json()
     cursor = connection.cursor()
     try:
-        print('em here')
-        print('usernamme', user_data['username'])
-        print('password', user_data['password'])
-
-        # validation
         query = "SELECT * FROM users WHERE username=%s AND password=%s"
         cursor.execute(query, (user_data['username'], user_data['password']))
         result = cursor.fetchall()
