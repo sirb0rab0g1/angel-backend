@@ -191,7 +191,10 @@ def login():
             }
             users.append(user)
 
-        return jsonify({'data': users})
+        if len(users) > 0:
+            return jsonify({'data': users})
+        else:
+            return jsonify({'error': 'Incorrect Username or Password'}), 500
 
     except Exception as e:
         # Handle the exception
