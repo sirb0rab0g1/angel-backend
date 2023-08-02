@@ -19,6 +19,7 @@ db_config = {
     'database': 'helpdesk'
 }
 connection = pymysql.connect(**db_config)
+cursor = connection.cursor()
 
 #twilio
 account_sid = 'AC512d82f1fab10c761596c05accedb537'
@@ -41,7 +42,6 @@ def get_users():
         # Convert the rows to a list of dictionaries
         users = []
         for row in rows:
-            print(row)
             user = {
                 'id': row[0],
                 'name': row[1],
@@ -65,21 +65,17 @@ def get_users():
 def get_concerns():
     user_data = request.get_json()
     cursor = connection.cursor()
-    print(user_data)
 
+    query = "SELECT * FROM concern WHERE requested_by_user_id=%s"
+    cursor.execute(query, (user_data['id']))
+    
     try:
-        # Execute the query
-        query = "SELECT * FROM concern WHERE requested_by_user_id=%s"
-        cursor.execute(query, (user_data['id']))
-        
         # Fetch all the rows
         rows = cursor.fetchall()
-        print('hello', rows)
 
         # Convert the rows to a list of dictionaries
         concern = []
         for row in rows:
-            print(row)
             user = {
                 'id': row[0],
                 'requested_by_user_id': row[1],
@@ -90,7 +86,6 @@ def get_concerns():
             concern.append(user)
 
         return jsonify(concern)
-
     except Exception as e:
         # Handle the exception
         return jsonify({'error': str(e)}), 500
@@ -104,38 +99,27 @@ def search_concerns():
     user_data = request.get_json()
     cursor = connection.cursor()
 
-    try:
-        # Execute the query
-        query = "SELECT * FROM concern WHERE name_reported LIKE %s AND requested_by_user_id=%s"
-        search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
-        cursor.execute(query, (search_value, user_data['user_id']))
-        
-        # Fetch all the rows
-        rows = cursor.fetchall()
-        print('hello', rows)
+    # Execute the query
+    query = "SELECT * FROM concern WHERE name_reported LIKE %s AND requested_by_user_id=%s"
+    search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
+    cursor.execute(query, (search_value, user_data['user_id']))
+    
+    # Fetch all the rows
+    rows = cursor.fetchall()
 
-        # Convert the rows to a list of dictionaries
-        concern = []
-        for row in rows:
-            print(row)
-            user = {
-                'id': row[0],
-                'requested_by_user_id': row[1],
-                'name_reported': row[2],
-                'reason': row[3],
-                'schedule_hearing': row[4],
-            }
-            concern.append(user)
+    # Convert the rows to a list of dictionaries
+    concern = []
+    for row in rows:
+        user = {
+            'id': row[0],
+            'requested_by_user_id': row[1],
+            'name_reported': row[2],
+            'reason': row[3],
+            'schedule_hearing': row[4],
+        }
+        concern.append(user)
 
-        return jsonify(concern)
-
-    except Exception as e:
-        # Handle the exception
-        return jsonify({'error': str(e)}), 500
-
-    finally:
-        # Close the cursor
-        cursor.close()
+    return jsonify(concern)
 
 @app.route('/report-user', methods=['POST'])
 def report_user():
@@ -157,39 +141,32 @@ def report_user():
         # Close the cursor
         cursor.close()         
 
-############### ADMIN ###################
-
-@app.route('/get-all-concerns', methods=['GET'])
-def get_all_concerns():
+@app.route('/get-notification', methods=['POST'])
+def get_notification():
+    user_data = request.get_json()
     cursor = connection.cursor()
-    cursors = connection.cursor()
 
+    # Execute the query
+    query = "SELECT * FROM notification WHERE requested_by_user_id=%s"
+    cursor.execute(query, (user_data['id']))
+    
     try:
-        # Execute the query
-        query = "SELECT * FROM concern"
-        cursor.execute(query,)
-        
         # Fetch all the rows
         rows = cursor.fetchall()
 
         # Convert the rows to a list of dictionaries
         concern = []
         for row in rows:
-            querys = "SELECT * FROM users WHERE id=%s"
-            cursors.execute(querys, (int(row[1])))
-            userc = cursors.fetchall()[0]
             user = {
                 'id': row[0],
-                'requested_by_user_id': row[1],
-                'name_reported': row[2],
-                'reason': row[3],
-                'schedule_hearing': row[4],
-                'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+                'modify_by_user': row[1],
+                'description': row[2],
+                'status': row[3],
+                'requested_by_user_id': row[4]
             }
             concern.append(user)
 
         return jsonify(concern)
-
     except Exception as e:
         # Handle the exception
         return jsonify({'error': str(e)}), 500
@@ -197,6 +174,37 @@ def get_all_concerns():
     finally:
         # Close the cursor
         cursor.close()
+
+############### ADMIN ###################
+@app.route('/get-all-concerns', methods=['GET'])
+def get_all_concerns():
+    cursor = connection.cursor()
+    cursors = connection.cursor()
+
+    # Execute the query
+    query = "SELECT * FROM concern"
+    cursor.execute(query,)
+    
+    # Fetch all the rows
+    rows = cursor.fetchall()
+
+    # Convert the rows to a list of dictionaries
+    concern = []
+    for row in rows:
+        querys = "SELECT * FROM users WHERE id=%s"
+        cursors.execute(querys, (int(row[1])))
+        userc = cursors.fetchall()[0]
+        user = {
+            'id': row[0],
+            'requested_by_user_id': row[1],
+            'name_reported': row[2],
+            'reason': row[3],
+            'schedule_hearing': row[4],
+            'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+        }
+        concern.append(user)
+
+    return jsonify(concern)
 
 @app.route('/search-admin-concerns', methods=['POST'])
 def search_admin_concerns():
@@ -212,7 +220,6 @@ def search_admin_concerns():
         
         # Fetch all the rows
         rows = cursor.fetchall()
-        print('hello', rows)
 
         # Convert the rows to a list of dictionaries
         concern = []
@@ -255,9 +262,17 @@ def update_report_user():
     user_data = request.get_json()
     cursor = connection.cursor()
 
+    cursor_notification = connection.cursor()
+
     try:
+        # update status
         query = "UPDATE concern SET requested_by_user_id=%s, name_reported=%s, schedule_hearing=%s, reason=%s WHERE id=%s"
         cursor.execute(query, (user_data['requested_by_user_id'], user_data['name_reported'], user_data['schedule_hearing'], user_data['reason'], user_data['id']))
+        connection.commit()
+
+        #insert notification
+        cursor.execute("INSERT INTO notification (modify_by_user, description, status, requested_by_user_id) VALUES (%s, %s, %s, %s)",
+                   (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id']))
         connection.commit()
 
         return jsonify({'data': 'Successfully update'})
@@ -303,7 +318,6 @@ def login():
 
         users = []
         for row in result:
-            print(row)
             user = {
                 'id': row[0],
                 'first_name': row[1],
@@ -321,7 +335,7 @@ def login():
 
     except Exception as e:
         # Handle the exception
-        return jsonify({'error': 'Incorrect Username or Password'}), 500
+        return jsonify({'error': str(e)}), 500
 
     finally:
         # Close the cursor
