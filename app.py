@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_socketio import SocketIO, send
 
 import pymysql
 from twilio.rest import Client
@@ -9,9 +10,15 @@ from twilio.rest import Client
 #pass: @K0angleader1234567890
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://192.168.116.1:3000", "http://192.168.0.160:3000"]}})
+# CORS(app, resources={r"/*": {"origins": ["http://192.168.116.1:3000", "http://192.168.0.160:3000"]}})
+# socketio = SocketIO(app, logger=True, engineio_logger=True)
+# CORS(socketio, resources={r"/*": {"origins": ["http://localhost:3000"]}})
+
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000"]}})
+socketio = SocketIO(app, logger=True, engineio_logger=True, cors_allowed_origins="*")
 
 #http://localhost/phpmyadmin
+
 #database
 db_config = {
     'host': 'localhost',
@@ -25,6 +32,29 @@ cursor = connection.cursor()
 account_sid = 'AC512d82f1fab10c761596c05accedb537'
 auth_token = 'f7b5bf0e78ec1258e41e8b1171683bb6'
 client = Client(account_sid, auth_token)
+
+############### SOCKETS ###################
+
+# @socketio.on('message')
+# def handle_message(message):
+#     print('Received message:', message)
+#     send('Message received: ' + message, broadcast=True)
+
+@socketio.on('message')
+def handle_message(data):
+    print(data)
+    channel = data.get('channel', 'default')
+    message = data.get('message', '')
+    send({'channel': channel, 'message': message}, broadcast=True)
+
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
 
 ############### USERS ###################
 @app.route('/users', methods=['GET'])
@@ -81,7 +111,7 @@ def get_concerns():
                 'requested_by_user_id': row[1],
                 'name_reported': row[2],
                 'reason': row[3],
-                'schedule_hearing': row[4],
+                'schedule_hearing': row[4]
             }
             concern.append(user)
 
@@ -127,8 +157,8 @@ def report_user():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO concern (requested_by_user_id, name_reported, reason) VALUES (%s, %s, %s)",
-                   (user_data['requested_by_user_id'], user_data['name_reported'], user_data['reason']))
+        cursor.execute("INSERT INTO concern (requested_by_user_id, name_reported, reason, title) VALUES (%s, %s, %s, %s)",
+                   (user_data['requested_by_user_id'], user_data['name_reported'], user_data['reason'], user_data['title']))
         connection.commit()
 
         return jsonify({'data': 'Successfully registered'})
@@ -147,35 +177,27 @@ def get_notification():
     cursor = connection.cursor()
 
     # Execute the query
-    query = "SELECT * FROM notification WHERE requested_by_user_id=%s"
+    query = "SELECT * FROM notification WHERE requested_by_user_id=%s ORDER BY id DESC LIMIT 1"
     cursor.execute(query, (user_data['id']))
-    
-    try:
-        # Fetch all the rows
-        rows = cursor.fetchall()
+    rows = cursor.fetchall()
 
-        # Convert the rows to a list of dictionaries
-        concern = []
-        for row in rows:
-            user = {
-                'id': row[0],
-                'modify_by_user': row[1],
-                'description': row[2],
-                'status': row[3],
-                'requested_by_user_id': row[4]
-            }
-            concern.append(user)
+    # Convert the rows to a list of dictionaries
+    concern = []
+    for row in rows:
+        user = {
+            'id': row[0],
+            'modify_by_user': row[1],
+            'description': row[2],
+            'status': row[3],
+            'requested_by_user_id': row[4],
+            'scheduled_date': row[5]
+        }
+        concern.append(user)
 
-        return jsonify(concern)
-    except Exception as e:
-        # Handle the exception
-        return jsonify({'error': str(e)}), 500
-
-    finally:
-        # Close the cursor
-        cursor.close()
+    return jsonify(concern)
 
 ############### ADMIN ###################
+
 @app.route('/get-all-concerns', methods=['GET'])
 def get_all_concerns():
     cursor = connection.cursor()
@@ -201,6 +223,7 @@ def get_all_concerns():
             'reason': row[3],
             'schedule_hearing': row[4],
             'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+            'title': row[5],
         }
         concern.append(user)
 
@@ -266,13 +289,13 @@ def update_report_user():
 
     try:
         # update status
-        query = "UPDATE concern SET requested_by_user_id=%s, name_reported=%s, schedule_hearing=%s, reason=%s WHERE id=%s"
-        cursor.execute(query, (user_data['requested_by_user_id'], user_data['name_reported'], user_data['schedule_hearing'], user_data['reason'], user_data['id']))
+        query = "UPDATE concern SET requested_by_user_id=%s, name_reported=%s, schedule_hearing=%s, reason=%s, title=%s WHERE id=%s"
+        cursor.execute(query, (user_data['requested_by_user_id'], user_data['name_reported'], user_data['schedule_hearing'], user_data['reason'], user_data['title'], user_data['id']))
         connection.commit()
 
         #insert notification
-        cursor.execute("INSERT INTO notification (modify_by_user, description, status, requested_by_user_id) VALUES (%s, %s, %s, %s)",
-                   (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id']))
+        cursor.execute("INSERT INTO notification (modify_by_user, description, status, requested_by_user_id, scheduled_date, title) VALUES (%s, %s, %s, %s, %s, %s)",
+                   (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id'], user_data['schedule_hearing'], user_data['title']))
         connection.commit()
 
         return jsonify({'data': 'Successfully update'})
@@ -341,6 +364,12 @@ def login():
         # Close the cursor
         cursor.close()  
 
+@app.route('/')
+def index():
+    return 'Index Page'
+
 # Run the Flask application
 if __name__ == '__main__':
-    app.run(debug=True)
+    # app.run(debug=True)
+    socketio.run(app, debug=True)
+
