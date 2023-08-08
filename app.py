@@ -10,10 +10,6 @@ from twilio.rest import Client
 #pass: @K0angleader1234567890
 
 app = Flask(__name__)
-# CORS(app, resources={r"/*": {"origins": ["http://192.168.116.1:3000", "http://192.168.0.160:3000"]}})
-# socketio = SocketIO(app, logger=True, engineio_logger=True)
-# CORS(socketio, resources={r"/*": {"origins": ["http://localhost:3000"]}})
-
 CORS(app, resources={r"/*": {"origins": ["http://localhost:3000"]}})
 socketio = SocketIO(app, logger=True, engineio_logger=True, cors_allowed_origins="*")
 
@@ -177,7 +173,7 @@ def get_notification():
     cursor = connection.cursor()
 
     # Execute the query
-    query = "SELECT * FROM notification WHERE requested_by_user_id=%s ORDER BY id DESC LIMIT 1"
+    query = "SELECT * FROM notification WHERE requested_by_user_id=%s GROUP BY title ORDER BY id DESC"
     cursor.execute(query, (user_data['id']))
     rows = cursor.fetchall()
 
@@ -190,11 +186,26 @@ def get_notification():
             'description': row[2],
             'status': row[3],
             'requested_by_user_id': row[4],
-            'scheduled_date': row[5]
+            'scheduled_date': row[5],
+            'title': row[6],
+            'is_read': row[7]
         }
         concern.append(user)
 
     return jsonify(concern)
+
+@app.route('/update-notification', methods=['POST'])
+def update_notification():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    # Execute the query
+    
+    query = "UPDATE notification SET modify_by_user=%s, description=%s, status=%s, requested_by_user_id=%s, scheduled_date=%s, title=%s, is_read=%s  WHERE id=%s"
+    cursor.execute(query, (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id'], user_data['scheduled_date'], user_data['title'], user_data['is_read'], user_data['id']))
+    connection.commit()
+
+    return jsonify({'data': 'Successfully update'})
 
 ############### ADMIN ###################
 
@@ -294,8 +305,8 @@ def update_report_user():
         connection.commit()
 
         #insert notification
-        cursor.execute("INSERT INTO notification (modify_by_user, description, status, requested_by_user_id, scheduled_date, title) VALUES (%s, %s, %s, %s, %s, %s)",
-                   (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id'], user_data['schedule_hearing'], user_data['title']))
+        cursor.execute("INSERT INTO notification (modify_by_user, description, status, requested_by_user_id, scheduled_date, title, is_read) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                   (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id'], user_data['schedule_hearing'], user_data['title'], user_data['is_read']))
         connection.commit()
 
         return jsonify({'data': 'Successfully update'})
