@@ -173,8 +173,9 @@ def get_notification():
     cursor = connection.cursor()
 
     # Execute the query
-    query = "SELECT * FROM notification WHERE requested_by_user_id=%s GROUP BY title ORDER BY id DESC"
-    cursor.execute(query, (user_data['id']))
+    # query = "SELECT MAX(id) AS max_id, modify_by_user, title, description, status, requested_by_user_id, scheduled_date, title, is_read FROM notification WHERE requested_by_user_id=%s GROUP BY title ORDER BY id DESC"
+    query = "SELECT n.* FROM notification n JOIN (SELECT title, MAX(id) AS max_id FROM notification WHERE requested_by_user_id=%s GROUP BY title) max_ids ON n.title = max_ids.title AND n.id = max_ids.max_id WHERE n.requested_by_user_id=%s ORDER BY n.id DESC"
+    cursor.execute(query, (user_data['id'], user_data['id']))
     rows = cursor.fetchall()
 
     # Convert the rows to a list of dictionaries
