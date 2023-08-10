@@ -107,7 +107,8 @@ def get_concerns():
                 'requested_by_user_id': row[1],
                 'name_reported': row[2],
                 'reason': row[3],
-                'schedule_hearing': row[4]
+                'schedule_hearing': row[4],
+                'title': row[5]
             }
             concern.append(user)
 
@@ -126,9 +127,9 @@ def search_concerns():
     cursor = connection.cursor()
 
     # Execute the query
-    query = "SELECT * FROM concern WHERE name_reported LIKE %s AND requested_by_user_id=%s"
+    query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s AND requested_by_user_id=%s"
     search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
-    cursor.execute(query, (search_value, user_data['user_id']))
+    cursor.execute(query, (search_value, search_value, user_data['user_id']))
     
     # Fetch all the rows
     rows = cursor.fetchall()
@@ -142,6 +143,7 @@ def search_concerns():
             'name_reported': row[2],
             'reason': row[3],
             'schedule_hearing': row[4],
+            'title': row[5],
         }
         concern.append(user)
 
@@ -249,9 +251,9 @@ def search_admin_concerns():
 
     try:
         # Execute the query
-        query = "SELECT * FROM concern WHERE name_reported LIKE %s"
+        query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s"
         search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
-        cursor.execute(query, (search_value))
+        cursor.execute(query, (search_value, search_value))
         
         # Fetch all the rows
         rows = cursor.fetchall()
@@ -268,7 +270,8 @@ def search_admin_concerns():
                 'name_reported': row[2],
                 'reason': row[3],
                 'schedule_hearing': row[4],
-                'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]}
+                'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+                'title': row[5]
             }
             concern.append(user)
 
