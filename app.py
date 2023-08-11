@@ -211,6 +211,32 @@ def update_notification():
     return jsonify({'data': 'Successfully update'})
 
 ############### ADMIN ###################
+@app.route('/get-all-concerns-count', methods=['GET'])
+def get_all_concerns_count():
+    cursor = connection.cursor()
+
+    # Execute the query
+    query = "SELECT COUNT(*) FROM concern"
+    cursor.execute(query)
+    
+    # Fetch the result
+    result = cursor.fetchone()
+
+    return jsonify({'data': result})
+
+@app.route('/get-all-users-count', methods=['GET'])
+def get_all_users_count():
+    cursor = connection.cursor()
+
+    # Execute the query
+    query = "SELECT COUNT(*) FROM users WHERE role = 'user'"
+    cursor.execute(query)
+    
+    # Fetch the result
+    result = cursor.fetchone()
+
+    return jsonify({'data': result})
+
 
 @app.route('/get-all-concerns', methods=['GET'])
 def get_all_concerns():
@@ -285,6 +311,92 @@ def search_admin_concerns():
         # Close the cursor
         cursor.close()
 
+@app.route('/create-barangay', methods=['POST'])
+def create_barangay():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("INSERT INTO barangays (barangay) VALUES (%s)",
+                   (user_data['barangay']))
+        connection.commit()
+
+        return jsonify({'data': 'Successfully registered'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/get-all-barangay', methods=['GET'])
+def get_all_barangay():
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM barangays"
+        cursor.execute(query)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'barangay': row[1]
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+
+
+@app.route('/search-barangay', methods=['POST'])
+def search_barangay():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM barangays WHERE barangay LIKE %s"
+        search_value = f"%{user_data['barangay']}%"
+        cursor.execute(query, (search_value))
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'barangay': row[1]
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
 @app.route('/send-sms', methods=['POST'])
 def send_sms():
     user_data = request.get_json()
@@ -331,8 +443,8 @@ def register_user():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role) VALUES (%s, %s, %s,%s,%s)",
-                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role']))
+        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, gender, phone_number) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s)",
+                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['gender'], user_data['phone_number']))
         connection.commit()
 
         return jsonify({'data': 'Successfully registered'})
