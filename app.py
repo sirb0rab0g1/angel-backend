@@ -30,19 +30,12 @@ auth_token = 'f7b5bf0e78ec1258e41e8b1171683bb6'
 client = Client(account_sid, auth_token)
 
 ############### SOCKETS ###################
-
-# @socketio.on('message')
-# def handle_message(message):
-#     print('Received message:', message)
-#     send('Message received: ' + message, broadcast=True)
-
 @socketio.on('message')
 def handle_message(data):
     print(data)
     channel = data.get('channel', 'default')
     message = data.get('message', '')
     send({'channel': channel, 'message': message}, broadcast=True)
-
 
 @socketio.on('connect')
 def handle_connect():
@@ -507,7 +500,18 @@ def register_user():
 
     finally:
         # Close the cursor
-        cursor.close()    
+        cursor.close()   
+
+@app.route('/update-user-profile', methods=['POST'])
+def update_user_profile():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    query = "UPDATE users SET first_name=%s, last_name=%s, username=%s, password=%s, role=%s, barangay=%s, age=%s, gender=%s, phone_number=%s WHERE id=%s"
+    cursor.execute(query, (user_data['first_name'],user_data['last_name'],user_data['username'],user_data['password'],user_data['role'],user_data['barangay'],user_data['age'],user_data['gender'],user_data['phone_number'],user_data['id']))
+    connection.commit()
+    
+    return jsonify({'data': 'Profile Successfully updated'})  
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -526,7 +530,11 @@ def login():
                 'last_name': row[2],
                 'username': row[3],
                 'password': row[4],
-                'role': row[5]
+                'role': row[5],
+                'barangay': row[6],
+                'age': row[7],
+                'gender': row[8],
+                'phone_number': row[9]
             }
             users.append(user)
 
