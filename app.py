@@ -237,6 +237,19 @@ def get_all_users_count():
 
     return jsonify({'data': result})
 
+@app.route('/get-all-barangays-count', methods=['GET'])
+def get_all_barangays_count():
+    cursor = connection.cursor()
+
+    # Execute the query
+    query = "SELECT COUNT(*) FROM barangays"
+    cursor.execute(query)
+    
+    # Fetch the result
+    result = cursor.fetchone()
+
+    return jsonify({'data': result})
+
 
 @app.route('/get-all-concerns', methods=['GET'])
 def get_all_concerns():
@@ -362,6 +375,45 @@ def get_all_barangay():
         # Close the cursor
         cursor.close()
 
+@app.route('/get-users-in-barangay', methods=['POST'])
+def get_users_in_barangay(): 
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM users WHERE barangay=%s"
+        cursor.execute(query, (user_data['barangay']))
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        users = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'username': row[3],
+                'password': row[4],
+                'role': row[5],
+                'barangay': row[6],
+                'age': row[7],
+                'gender': row[8],
+                'phone_number': row[9]
+            }
+            users.append(user)
+
+        return jsonify(users)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
 
 
 @app.route('/search-barangay', methods=['POST'])
