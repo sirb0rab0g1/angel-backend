@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, send
 
@@ -29,6 +29,11 @@ account_sid = 'AC512d82f1fab10c761596c05accedb537'
 auth_token = 'f7b5bf0e78ec1258e41e8b1171683bb6'
 client = Client(account_sid, auth_token)
 
+# uploading
+import os
+UPLOAD_FOLDER = 'static/uploads/events'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 ############### SOCKETS ###################
 @socketio.on('message')
 def handle_message(data):
@@ -44,6 +49,34 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     print('Client disconnected')
+
+
+############### UPLOAD IMAGE ###################
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
+    
+    file = request.files['file']
+    eventid = request.form['eventid']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+
+    if file:
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filename)
+
+        query = "UPDATE events SET image=%s  WHERE id=%s"
+        cursor.execute(query, (filename, eventid))
+        connection.commit()
+
+        return jsonify({'success': True, 'filename': filename})
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 ############### USERS ###################
 @app.route('/users', methods=['GET'])
@@ -480,6 +513,95 @@ def update_report_user():
         # Close the cursor
         cursor.close() 
 
+@app.route('/create-event', methods=['POST'])
+def create_event():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("INSERT INTO events (title, date, summary, image) VALUES (%s,%s,%s,%s)",
+                   (user_data['title'], user_data['date'], user_data['summary'], user_data['image']))
+        connection.commit()
+
+        # Get the last inserted ID
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        event_id = cursor.fetchone()[0]
+
+        return jsonify({'id': event_id, 'message': 'Successfully registered'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/search-event', methods=['POST'])
+def search_event():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM events WHERE title LIKE %s"
+        search_value = f"%{user_data['title']}%"
+        cursor.execute(query, (search_value))
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'barangay': row[1]
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/get-all-events', methods=['GET'])
+def get_all_events():
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM events"
+        cursor.execute(query)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'title': row[1],
+                'date': row[2],
+                'summary': row[3]
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
 ############### AUTHS ###################
 
 @app.route('/register', methods=['POST'])
@@ -549,7 +671,7 @@ def login():
 
     finally:
         # Close the cursor
-        cursor.close()  
+        cursor.close()
 
 @app.route('/')
 def index():
