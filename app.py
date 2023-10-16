@@ -556,11 +556,36 @@ def search_event():
         for row in rows:
             user = {
                 'id': row[0],
-                'barangay': row[1]
+                'title': row[1],
+                'date': row[2],
+                'summary': row[3]
             }
             concern.append(user)
 
         return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/delete-event', methods=['POST'])
+def delete_event():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "DELETE FROM events WHERE id=%s"
+        cursor.execute(query, (user_data['id'],))
+        
+        # Commit the transaction
+        connection.commit()
+
+        return jsonify({'message': 'Event deleted successfully'})
 
     except Exception as e:
         # Handle the exception
