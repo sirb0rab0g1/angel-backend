@@ -370,6 +370,29 @@ def create_barangay():
         # Close the cursor
         cursor.close()
 
+@app.route('/delete-barangay', methods=['POST'])
+def delete_barangay():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "DELETE FROM barangays WHERE id=%s"
+        cursor.execute(query, (user_data['id'],))
+        
+        # Commit the transaction
+        connection.commit()
+
+        return jsonify({'message': 'Service deleted successfully'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
 @app.route('/get-all-barangay', methods=['GET'])
 def get_all_barangay():
     cursor = connection.cursor()
