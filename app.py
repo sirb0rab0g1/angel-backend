@@ -568,8 +568,15 @@ def search_event():
     try:
         # Execute the query
         query = "SELECT * FROM events WHERE title LIKE %s"
-        search_value = f"%{user_data['title']}%"
-        cursor.execute(query, (search_value))
+        search_values_title = f"%{user_data['title']}%"
+        
+        if user_data['id'] is not None:
+            query += " AND id=%s"
+            params = (search_values_title, user_data['id'])
+        else:
+            params = (search_values_title,)
+            
+        cursor.execute(query, params)
         
         # Fetch all the rows
         rows = cursor.fetchall()
@@ -581,7 +588,8 @@ def search_event():
                 'id': row[0],
                 'title': row[1],
                 'date': row[2],
-                'summary': row[3]
+                'summary': row[3],
+                'image': 'http://localhost:5000/'+row[4]
             }
             concern.append(user)
 
