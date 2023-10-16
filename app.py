@@ -773,7 +773,7 @@ def search_announcement():
 
     try:
         # Execute the query
-        query = "SELECT * FROM announcemets WHERE title LIKE %s"
+        query = "SELECT * FROM announcemets  WHERE title LIKE %s"
         search_values_title = f"%{user_data['title']}%"
         
         if user_data['id'] is not None:
@@ -823,6 +823,286 @@ def delete_announcement():
         connection.commit()
 
         return jsonify({'message': 'Announcement deleted successfully'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/create-history', methods=['POST'])
+def create_history():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("INSERT INTO history (description) VALUES (%s)",
+                   (user_data['description']))
+        connection.commit()
+
+        return jsonify({'data': 'Successfully Created'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/delete-history', methods=['POST'])
+def delete_history():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "DELETE FROM history WHERE id=%s"
+        cursor.execute(query, (user_data['id'],))
+        
+        # Commit the transaction
+        connection.commit()
+
+        return jsonify({'message': 'History deleted successfully'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/update-history', methods=['POST'])
+def update_history():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        query = "UPDATE history SET description=%s WHERE id=%s"
+        cursor.execute(query, (user_data['description'], user_data['id']))
+        connection.commit()
+
+        return jsonify({'data': 'Successfully Update'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/search-history', methods=['POST'])
+def search_history():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM history  WHERE description LIKE %s"
+        search_values_title = f"%{user_data['description']}%"
+        
+        if user_data['id'] is not None:
+            query += " AND id=%s"
+            params = (search_values_title, user_data['id'])
+        else:
+            params = (search_values_title,)
+            
+        cursor.execute(query, params)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'description': row[1]
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/get-all-history', methods=['GET'])
+def get_all_history():
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM history"
+        cursor.execute(query)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'description': row[1]
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/create-goals', methods=['POST'])
+def create_goal():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("INSERT INTO goals (description, is_vission_or_mission) VALUES (%s, %s)",
+                   (user_data['description'], user_data['is_vission_or_mission']))
+        connection.commit()
+
+        return jsonify({'data': 'Successfully Created'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/delete-goals', methods=['POST'])
+def delete_goals():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "DELETE FROM goals WHERE id=%s"
+        cursor.execute(query, (user_data['id'],))
+        
+        # Commit the transaction
+        connection.commit()
+
+        return jsonify({'message': 'Goals deleted successfully'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/update-goals', methods=['POST'])
+def update_goals():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        query = "UPDATE goals SET description=%s, is_vission_or_mission=%s WHERE id=%s"
+        cursor.execute(query, (user_data['description'],user_data['is_vission_or_mission'], user_data['id']))
+        connection.commit()
+
+        return jsonify({'data': 'Successfully Update'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/search-goals', methods=['POST'])
+def search_goals():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM goals WHERE description LIKE %s"
+        search_values_title = f"%{user_data['description']}%"
+        
+        if user_data['id'] is not None:
+            query += " AND id=%s"
+            params = (search_values_title, user_data['id'])
+        else:
+            params = (search_values_title,)
+
+        if user_data['filter'] is not None:
+            query += " AND is_vission_or_mission=%s"
+            params = (search_values_title, user_data['filter'])
+        else:
+            params = (search_values_title,)
+
+        query = query + " ORDER BY id DESC"
+            
+        cursor.execute(query, params)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'description': row[1],
+                'is_vission_or_mission': row[2],
+
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/get-all-goals', methods=['GET'])
+def get_all_goals():
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM goals ORDER BY id DESC"
+        cursor.execute(query)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'description': row[1],
+                'is_vission_or_mission': row[2],
+
+            }
+            concern.append(user)
+
+        return jsonify(concern)
 
     except Exception as e:
         # Handle the exception
