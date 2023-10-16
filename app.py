@@ -73,6 +73,27 @@ def upload_file():
 
         return jsonify({'success': True, 'filename': filename})
 
+@app.route('/announcement-upload', methods=['POST'])
+def announcement_upload():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
+    
+    file = request.files['file']
+    announcementid = request.form['announcementid']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+
+    if file:
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filename)
+
+        query = "UPDATE announcemets SET image=%s  WHERE id=%s"
+        cursor.execute(query, (filename, announcementid))
+        connection.commit()
+
+        return jsonify({'success': True, 'filename': filename})
+
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -370,6 +391,26 @@ def create_barangay():
         # Close the cursor
         cursor.close()
 
+@app.route('/update-barangay', methods=['POST'])
+def update_barangay():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        query = "UPDATE barangays SET barangay=%s WHERE id=%s"
+        cursor.execute(query, (user_data['barangay'], user_data['id']))
+        connection.commit()
+
+        return jsonify({'data': 'Successfully Update'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
 @app.route('/delete-barangay', methods=['POST'])
 def delete_barangay():
     user_data = request.get_json()
@@ -473,8 +514,15 @@ def search_barangay():
     try:
         # Execute the query
         query = "SELECT * FROM barangays WHERE barangay LIKE %s"
-        search_value = f"%{user_data['barangay']}%"
-        cursor.execute(query, (search_value))
+        search_values_title = f"%{user_data['barangay']}%"
+        
+        if user_data['id'] is not None:
+            query += " AND id=%s"
+            params = (search_values_title, user_data['id'])
+        else:
+            params = (search_values_title,)
+            
+        cursor.execute(query, params)
         
         # Fetch all the rows
         rows = cursor.fetchall()
@@ -650,6 +698,131 @@ def get_all_events():
             concern.append(user)
 
         return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/create-announcement', methods=['POST'])
+def create_announcement():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("INSERT INTO announcemets (title, description, datetime, image) VALUES (%s,%s,%s,%s)",
+                   (user_data['title'], user_data['description'], user_data['datetime'], user_data['image']))
+        connection.commit()
+
+        # Get the last inserted ID
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        event_id = cursor.fetchone()[0]
+
+        return jsonify({'id': event_id, 'message': 'Successfully registered'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+
+
+@app.route('/get-all-announcements', methods=['GET'])
+def get_all_announcements():
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM announcemets"
+        cursor.execute(query)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'title': row[1],
+                'datetime': row[2],
+                'description': row[3]
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/search-announcement', methods=['POST'])
+def search_announcement():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM announcemets WHERE title LIKE %s"
+        search_values_title = f"%{user_data['title']}%"
+        
+        if user_data['id'] is not None:
+            query += " AND id=%s"
+            params = (search_values_title, user_data['id'])
+        else:
+            params = (search_values_title,)
+            
+        cursor.execute(query, params)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'title': row[1],
+                'datetime': row[2],
+                'description': row[3],
+                'image': 'http://localhost:5000/'+row[4]
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/delete-announcement', methods=['POST'])
+def delete_announcement():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "DELETE FROM announcemets WHERE id=%s"
+        cursor.execute(query, (user_data['id'],))
+        
+        # Commit the transaction
+        connection.commit()
+
+        return jsonify({'message': 'Announcement deleted successfully'})
 
     except Exception as e:
         # Handle the exception
