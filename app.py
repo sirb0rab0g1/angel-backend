@@ -1036,22 +1036,22 @@ def search_goals():
 
     try:
         # Execute the query
-        query = "SELECT * FROM goals WHERE description LIKE %s"
-        search_values_title = f"%{user_data['description']}%"
-        
+        query = "SELECT * FROM goals WHERE 1=1"  # Always true to start with
+        params = []
+
         if user_data['id'] is not None:
             query += " AND id=%s"
-            params = (search_values_title, user_data['id'])
-        else:
-            params = (search_values_title,)
+            params.append(user_data['id'])
 
-        if user_data['filter'] is not None:
+        if user_data['is_vission_or_mission'] is not None:
             query += " AND is_vission_or_mission=%s"
-            params = (search_values_title, user_data['filter'])
-        else:
-            params = (search_values_title,)
+            params.append(user_data['is_vission_or_mission'])
 
-        query = query + " ORDER BY id DESC"
+        if user_data['description'] is not None:
+            query += " AND description LIKE %s"
+            params.append(f"%{user_data['description']}%")
+
+        query += " ORDER BY id DESC"
             
         cursor.execute(query, params)
         
