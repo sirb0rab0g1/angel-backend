@@ -263,7 +263,7 @@ def get_all_concerns_count():
     cursor = connection.cursor()
 
     # Execute the query
-    query = "SELECT COUNT(*) FROM concern"
+    query = "SELECT COUNT(*) FROM events"
     cursor.execute(query)
     
     # Fetch the result
@@ -276,7 +276,7 @@ def get_all_users_count():
     cursor = connection.cursor()
 
     # Execute the query
-    query = "SELECT COUNT(*) FROM users WHERE role = 'user'"
+    query = "SELECT COUNT(*) FROM announcemets"
     cursor.execute(query)
     
     # Fetch the result
@@ -304,7 +304,7 @@ def get_all_concerns():
     cursors = connection.cursor()
 
     # Execute the query
-    query = "SELECT * FROM concern"
+    query = "SELECT * FROM events"
     cursor.execute(query,)
     
     # Fetch all the rows
