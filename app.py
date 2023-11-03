@@ -303,27 +303,19 @@ def get_all_concerns():
     cursor = connection.cursor()
     cursors = connection.cursor()
 
-    # Execute the query
-    query = "SELECT * FROM events"
+    query = "SELECT * FROM contactus"
     cursor.execute(query,)
-    
-    # Fetch all the rows
-    rows = cursor.fetchall()
 
-    # Convert the rows to a list of dictionaries
+    rows = cursor.fetchall()
     concern = []
     for row in rows:
-        querys = "SELECT * FROM users WHERE id=%s"
-        cursors.execute(querys, (int(row[1])))
-        userc = cursors.fetchall()[0]
+        print(row)
         user = {
             'id': row[0],
-            'requested_by_user_id': row[1],
-            'name_reported': row[2],
-            'reason': row[3],
-            'schedule_hearing': row[4],
-            'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
-            'title': row[5],
+            'name': row[1],
+            'mobilenumber': row[2],
+            'email': row[3],
+            'message': row[4]
         }
         concern.append(user)
 
@@ -1103,6 +1095,26 @@ def get_all_goals():
             concern.append(user)
 
         return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/create-contact-us', methods=['POST'])
+def create_contact_us():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("INSERT INTO contactus (name, mobilenumber,email, message) VALUES (%s, %s, %s, %s)",
+                   (user_data['name'], user_data['mobilenumber'], user_data['email'], user_data['message']))
+        connection.commit()
+
+        return jsonify({'data': 'You successfully contacted us! Please wait for adminitrators response'})
 
     except Exception as e:
         # Handle the exception
