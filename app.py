@@ -257,6 +257,96 @@ def update_notification():
 
     return jsonify({'data': 'Successfully update'})
 
+@app.route('/request-document', methods=['POST'])
+def request_document():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("INSERT INTO document (requested_by_id, service, reason, status, description) VALUES (%s, %s, %s, %s, %s)",
+                   (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description']))
+        connection.commit()
+
+        return jsonify({'data': 'Successfully registered'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()   
+
+@app.route('/get-all-request-document', methods=['POST'])
+def get_all_request_document():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+    cursors = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM document WHERE 1=1"  # Always true to start with
+        params = []
+
+        if user_data['requested_by_id'] is not None:
+            query += " AND requested_by_id=%s"
+            params.append(user_data['requested_by_id'])
+
+        if user_data['service'] is not None:
+            query += " AND service LIKE %s"
+            params.append(f"%{user_data['service']}%")
+
+        query += " ORDER BY id DESC"
+            
+        cursor.execute(query, params)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            querys = "SELECT * FROM users WHERE id=%s"
+            cursors.execute(querys, (int(row[1])))
+            userc = cursors.fetchall()[0]
+            print(userc)
+
+            user = {
+                'id': row[0],
+                'requested_by_id': row[1],
+                'service': row[2],
+                'reason': row[3],
+                'status': row[4],
+                'description': row[5],
+                'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+
+@app.route('/update-request-document', methods=['POST'])
+def update_request_document():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    # Execute the query
+    
+    query = "UPDATE document SET requested_by_id=%s, service=%s, reason=%s, status=%s, description=%sWHERE id=%s"
+    cursor.execute(query, (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['id']))
+    connection.commit()
+
+    return jsonify({'data': 'Successfully update'})      
+
 ############### ADMIN ###################
 @app.route('/get-all-concerns-count', methods=['GET'])
 def get_all_concerns_count():
@@ -685,7 +775,8 @@ def get_all_events():
                 'id': row[0],
                 'title': row[1],
                 'date': row[2],
-                'summary': row[3]
+                'summary': row[3],
+                'image': row[4],
             }
             concern.append(user)
 
@@ -731,7 +822,7 @@ def get_all_announcements():
 
     try:
         # Execute the query
-        query = "SELECT * FROM announcemets"
+        query = "SELECT * FROM announcemets ORDER BY id DESC"
         cursor.execute(query)
         
         # Fetch all the rows
@@ -744,7 +835,8 @@ def get_all_announcements():
                 'id': row[0],
                 'title': row[1],
                 'datetime': row[2],
-                'description': row[3]
+                'description': row[3],
+                'image': row[4]
             }
             concern.append(user)
 
