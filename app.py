@@ -319,6 +319,7 @@ def get_all_request_document():
                 'status': row[4],
                 'description': row[5],
                 'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+                'age': userc[7]
 
             }
             concern.append(user)
