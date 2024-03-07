@@ -412,6 +412,34 @@ def get_all_concerns():
 
     return jsonify(concern)
 
+@app.route('/get-all-concerns-original', methods=['GET'])
+def get_all_concerns_original():
+    cursor = connection.cursor()
+    cursors = connection.cursor()
+
+    query = "SELECT * FROM concern"
+    cursor.execute(query,)
+
+    rows = cursor.fetchall()
+    concern = []
+    for row in rows:
+        querys = "SELECT * FROM users WHERE id=%s"
+        cursors.execute(querys, (int(row[1])))
+        userc = cursors.fetchall()[0]
+
+        user = {
+            'id': row[0],
+            'requested_by_user_id': row[1],
+            'name_reported': row[2],
+            'reason': row[3],
+            'schedule_hearing': row[4],
+            'title': row[5],
+            'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+        }
+        concern.append(user)
+
+    return jsonify(concern)
+
 @app.route('/search-admin-concerns', methods=['POST'])
 def search_admin_concerns():
     user_data = request.get_json()
@@ -644,7 +672,7 @@ def update_report_user():
     user_data = request.get_json()
     cursor = connection.cursor()
 
-    cursor_notification = connection.cursor()
+    # cursor_notification = connection.cursor()
 
     try:
         # update status
@@ -653,9 +681,9 @@ def update_report_user():
         connection.commit()
 
         #insert notification
-        cursor.execute("INSERT INTO notification (modify_by_user, description, status, requested_by_user_id, scheduled_date, title, is_read) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                   (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id'], user_data['schedule_hearing'], user_data['title'], user_data['is_read']))
-        connection.commit()
+        # cursor.execute("INSERT INTO notification (modify_by_user, description, status, requested_by_user_id, scheduled_date, title, is_read) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        #            (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id'], user_data['schedule_hearing'], user_data['title'], user_data['is_read']))
+        # connection.commit()
 
         return jsonify({'data': 'Successfully update'})
 
