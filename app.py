@@ -172,11 +172,13 @@ def get_concerns():
 def search_concerns():
     user_data = request.get_json()
     cursor = connection.cursor()
+    print('user data', user_data['user_id'])
 
     # Execute the query
-    query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s AND requested_by_user_id=%s"
+    query = "SELECT * FROM concern WHERE (name_reported LIKE %s OR title LIKE %s) AND requested_by_user_id=%s"
     search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
     cursor.execute(query, (search_value, search_value, user_data['user_id']))
+    print(query)
     
     # Fetch all the rows
     rows = cursor.fetchall()
@@ -202,8 +204,8 @@ def report_user():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO concern (requested_by_user_id, name_reported, reason, title) VALUES (%s, %s, %s, %s)",
-                   (user_data['requested_by_user_id'], user_data['name_reported'], user_data['reason'], user_data['title']))
+        cursor.execute("INSERT INTO concern (requested_by_user_id, name_reported, reason, title, query_by_user) VALUES (%s, %s, %s, %s, %s)",
+                   (user_data['requested_by_user_id'], user_data['name_reported'], user_data['reason'], user_data['title'], user_data['query_by_user']))
         connection.commit()
 
         return jsonify({'data': 'Successfully registered'})
@@ -434,6 +436,7 @@ def get_all_concerns_original():
             'reason': row[3],
             'schedule_hearing': row[4],
             'title': row[5],
+            'query_by_user': row[6],
             'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
         }
         concern.append(user)
@@ -448,7 +451,7 @@ def search_admin_concerns():
 
     try:
         # Execute the query
-        query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s"
+        query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s "
         search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
         cursor.execute(query, (search_value, search_value))
         
@@ -468,7 +471,8 @@ def search_admin_concerns():
                 'reason': row[3],
                 'schedule_hearing': row[4],
                 'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
-                'title': row[5]
+                'title': row[5],
+                'query_by_user': row[6],
             }
             concern.append(user)
 
@@ -1252,11 +1256,14 @@ def register_user():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, gender, phone_number) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s)",
-                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['gender'], user_data['phone_number']))
+        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, gender, phone_number, status, otp) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['gender'], user_data['phone_number'], user_data['status'], user_data['otp']))
         connection.commit()
 
-        return jsonify({'data': 'Successfully registered'})
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        last_inserted_id = cursor.fetchone()[0]
+
+        return jsonify({'data': 'Successfully registered', 'id': last_inserted_id})
 
     except Exception as e:
         # Handle the exception
@@ -1282,7 +1289,7 @@ def login():
     user_data = request.get_json()
     cursor = connection.cursor()
     try:
-        query = "SELECT * FROM users WHERE username=%s AND password=%s"
+        query = "SELECT * FROM users WHERE username=%s AND password=%s AND status='active'"
         cursor.execute(query, (user_data['username'], user_data['password']))
         result = cursor.fetchall()
 
@@ -1304,6 +1311,44 @@ def login():
 
         if len(users) > 0:
             return jsonify({'data': users})
+        else:
+            return jsonify({'error': 'Incorrect Username or Password'}), 500
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/validate-otp-login', methods=['POST'])
+def validate_otp_login():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+    try:
+        query = "SELECT * FROM users WHERE id=%s AND otp=%s"
+        cursor.execute(query, (user_data['id'], user_data['otp']))
+        result = cursor.fetchall()
+
+        users = []
+        for row in result:
+            user = {
+                'id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'username': row[3],
+                'password': row[4],
+                'role': row[5],
+                'barangay': row[6],
+                'age': row[7],
+                'gender': row[8],
+                'phone_number': row[9]
+            }
+            users.append(user)
+
+        if len(users) > 0:
+            return jsonify({'data': 'Validated'})
         else:
             return jsonify({'error': 'Incorrect Username or Password'}), 500
 
