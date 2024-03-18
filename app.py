@@ -1248,6 +1248,63 @@ def create_contact_us():
     finally:
         # Close the cursor
         cursor.close()
+
+@app.route('/get-all-users', methods=['GET'])
+def get_all_users():
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM users ORDER BY id DESC"
+        cursor.execute(query)
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'username': row[3],
+                'age': row[7],
+                'gender': row[8],
+                'phone_number': row[9],
+                'status': row[10],
+
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/update-user-status', methods=['POST'])
+def update_user_status():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        query = "UPDATE users SET status=%s WHERE id=%s"
+        cursor.execute(query, (user_data['status'],user_data['id']))
+        connection.commit()
+        
+        return jsonify({'data': 'Profile Successfully updated'})  
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
 ############### AUTHS ###################
 
 @app.route('/register', methods=['POST'])
@@ -1350,7 +1407,7 @@ def validate_otp_login():
         if len(users) > 0:
             return jsonify({'data': 'Validated'})
         else:
-            return jsonify({'error': 'Incorrect Username or Password'}), 500
+            return jsonify({'error': 'Incorrect Username or Password'})
 
     except Exception as e:
         # Handle the exception
