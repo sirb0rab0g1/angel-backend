@@ -1420,15 +1420,18 @@ def register_user():
         #   to='+63'+user_data['phone_number']
         # )
 
-        params = (
-            ('apikey', '9adf279544786e19f5efc643e0225b3e'),
-            ('sendername', 'PackAndGo'),
-            ('message', 'Hello! This is fromm barangay Tres De Mayo Digos City. Kindly input the OTP code {}.'.format(user_data['otp'])),
-            ('number', '0'+user_data['phone_number'])
-        )
-        path = 'https://semaphore.co/api/v4/messages?' + urlencode(params)
-        response = requests.get(path)
-        print('Message Sent!')
+
+        # ========================
+
+        # params = (
+        #     ('apikey', '9adf279544786e19f5efc643e0225b3e'),
+        #     ('sendername', 'PackAndGo'),
+        #     ('message', 'Hello! This is fromm barangay Tres De Mayo Digos City. Kindly input the OTP code {}.'.format(user_data['otp'])),
+        #     ('number', '0'+user_data['phone_number'])
+        # )
+        # path = 'https://semaphore.co/api/v4/messages?' + urlencode(params)
+        # response = requests.get(path)
+        # print('Message Sent!')
 
         return jsonify({'data': 'Successfully registered', 'id': last_inserted_id})
 
