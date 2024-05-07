@@ -5,14 +5,20 @@ from flask_socketio import SocketIO, send
 import pymysql
 from twilio.rest import Client
 
+import requests
+
 #twilio account
-#email: kentoyfueconcillo@gmail.comm
-#pass: @K0angleader1234567890
+
+import sys, requests
+from urllib.parse import urlencode
+
+from user_agents import parse
+import hashlib
+
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:3000"]}})
-socketio = SocketIO(app, logger=True, engineio_logger=True, cors_allowed_origins="*")
-
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://192.168.100.147:3000", "http://192.168.100.186:3000"]}})
+socketio = SocketIO(app, logger=True, engineio_logger=True, cors_allowed_origins=["http://localhost:3000", "http://192.168.100.186:3000", "http://192.168.1.16:3000"])
 #http://localhost/phpmyadmin
 
 #database
@@ -396,7 +402,7 @@ def get_all_concerns():
     cursor = connection.cursor()
     cursors = connection.cursor()
 
-    query = "SELECT * FROM contactus"
+    query = "SELECT * FROM contactus ORDER BY id DESC"
     cursor.execute(query,)
 
     rows = cursor.fetchall()
@@ -408,7 +414,8 @@ def get_all_concerns():
             'name': row[1],
             'mobilenumber': row[2],
             'email': row[3],
-            'message': row[4]
+            'message': row[4],
+            'date': row[5]
         }
         concern.append(user)
 
@@ -451,28 +458,46 @@ def search_admin_concerns():
 
     try:
         # Execute the query
-        query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s "
-        search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
-        cursor.execute(query, (search_value, search_value))
+        # query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s "
+        # search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
+        # cursor.execute(query, (search_value, search_value))
         
-        # Fetch all the rows
-        rows = cursor.fetchall()
+        # # Fetch all the rows
+        # rows = cursor.fetchall()
 
-        # Convert the rows to a list of dictionaries
+        # # Convert the rows to a list of dictionaries
+        # concern = []
+        # for row in rows:
+        #     querys = "SELECT * FROM users WHERE id=%s"
+        #     cursors.execute(querys, (int(row[1])))
+        #     userc = cursors.fetchall()[0]
+        #     user = {
+        #         'id': row[0],
+        #         'requested_by_user_id': row[1],
+        #         'name_reported': row[2],
+        #         'reason': row[3],
+        #         'schedule_hearing': row[4],
+        #         'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+        #         'title': row[5],
+        #         'query_by_user': row[6],
+        #     }
+        #     concern.append(user)
+
+        query = "SELECT * FROM contactus WHERE name LIKE %s OR mobilenumber LIKE %s ORDER BY id DESC"
+        search_value = f"%{user_data['search']}%"
+        cursor.execute(query, (search_value, search_value))
+
+        rows = cursor.fetchall()
         concern = []
         for row in rows:
-            querys = "SELECT * FROM users WHERE id=%s"
-            cursors.execute(querys, (int(row[1])))
-            userc = cursors.fetchall()[0]
+            print(row)
             user = {
                 'id': row[0],
-                'requested_by_user_id': row[1],
-                'name_reported': row[2],
-                'reason': row[3],
-                'schedule_hearing': row[4],
-                'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
-                'title': row[5],
-                'query_by_user': row[6],
+                'name': row[1],
+                'mobilenumber': row[2],
+                'email': row[3],
+                'message': row[4],
+                'date': row[5]
             }
             concern.append(user)
 
@@ -867,8 +892,8 @@ def get_all_announcements():
             user = {
                 'id': row[0],
                 'title': row[1],
-                'datetime': row[2],
-                'description': row[3],
+                'description': row[2],
+                'datetime': row[3],
                 'image': row[4]
             }
             concern.append(user)
@@ -1235,8 +1260,8 @@ def create_contact_us():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO contactus (name, mobilenumber,email, message) VALUES (%s, %s, %s, %s)",
-                   (user_data['name'], user_data['mobilenumber'], user_data['email'], user_data['message']))
+        cursor.execute("INSERT INTO contactus (name, mobilenumber,email, message, date) VALUES (%s, %s, %s, %s, %s)",
+                   (user_data['name'], user_data['mobilenumber'], user_data['email'], user_data['message'], user_data['date']))
         connection.commit()
 
         return jsonify({'data': 'You successfully contacted us! Please wait for adminitrators response'})
@@ -1313,12 +1338,32 @@ def register_user():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, gender, phone_number, status, otp) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['gender'], user_data['phone_number'], user_data['status'], user_data['otp']))
+        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, birth_date, gender, phone_number, status, otp) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['birth_date'], user_data['gender'], user_data['phone_number'], user_data['status'], user_data['otp']))
         connection.commit()
 
         cursor.execute("SELECT LAST_INSERT_ID()")
         last_inserted_id = cursor.fetchone()[0]
+
+        # account_sid = 'ACd4ac9da1a00ae1b04b5623db26af7f01'
+        # auth_token = 'fe583c8efde5313a5e67685b2413d1cb'
+        # client = Client(account_sid, auth_token)
+
+        # message = client.messages.create(
+        #   body='Hello! This is fromm barangay Tres De Mayo Digos City. Kindly input the OTP code {}.'.format(user_data['otp']),
+        #   from_='+13613216644',
+        #   to='+63'+user_data['phone_number']
+        # )
+
+        params = (
+            ('apikey', '9adf279544786e19f5efc643e0225b3e'),
+            ('sendername', 'PackAndGo'),
+            ('message', 'Hello! This is fromm barangay Tres De Mayo Digos City. Kindly input the OTP code {}.'.format(user_data['otp'])),
+            ('number', '0'+user_data['phone_number'])
+        )
+        path = 'https://semaphore.co/api/v4/messages?' + urlencode(params)
+        response = requests.get(path)
+        print('Message Sent!')
 
         return jsonify({'data': 'Successfully registered', 'id': last_inserted_id})
 
@@ -1339,10 +1384,53 @@ def update_user_profile():
     cursor.execute(query, (user_data['first_name'],user_data['last_name'],user_data['username'],user_data['password'],user_data['role'],user_data['barangay'],user_data['age'],user_data['gender'],user_data['phone_number'],user_data['id']))
     connection.commit()
     
-    return jsonify({'data': 'Profile Successfully updated'})  
-
+    return jsonify({'data': 'Profile Successfully updated'})
+      
 @app.route('/login', methods=['POST'])
 def login():
+    # user_agent_string = request.headers.get('User-Agent')
+    # user_agent = parse(user_agent_string)
+
+    # browser_info = {
+    #     'browser': {
+    #         'family': user_agent.browser.family,
+    #         'version': user_agent.browser.version_string,
+    #         'is_mobile': user_agent.is_mobile,
+    #         'is_tablet': user_agent.is_tablet,
+    #         'is_pc': user_agent.is_pc,
+    #         'is_bot': user_agent.is_bot
+    #     },
+    #     'os': {
+    #         'family': user_agent.os.family,
+    #         'version': user_agent.os.version_string
+    #     },
+    #     'device': {
+    #         'family': user_agent.device.family,
+    #         'brand': user_agent.device.brand,
+    #         'model': user_agent.device.model
+    #     },
+    #     'is_touch_capable': user_agent.is_touch_capable,
+    #     'is_mobile': user_agent.is_mobile,
+    #     'is_tablet': user_agent.is_tablet,
+    #     'is_pc': user_agent.is_pc,
+    #     'is_bot': user_agent.is_bot
+    # }
+
+    # browser = user_agent.browser.family + user_agent.browser.version_string + str(user_agent.is_mobile) + str(user_agent.is_tablet) + str(user_agent.is_pc) + str(user_agent.is_bot)
+    # os = user_agent.os.family + user_agent.os.version_string
+    # device = user_agent.device.family + user_agent.device.brand + user_agent.device.model
+    # extra = str(user_agent.is_touch_capable) + str(user_agent.is_mobile) + str(user_agent.is_tablet) + str(user_agent.is_pc) + str(user_agent.is_bot)
+
+    # vals = browser + os + device + extra
+
+    # sha256_hash = hashlib.sha256()
+    # sha256_hash.update(vals.encode('utf-8'))
+    # hashed_string = sha256_hash.hexdigest()
+
+    # # return jsonify({'data': browser_info, 'hashed': hashed})
+    # # return jsonify(hashed_string)
+    # return jsonify(browser_info)
+
     user_data = request.get_json()
     cursor = connection.cursor()
     try:
@@ -1362,7 +1450,11 @@ def login():
                 'barangay': row[6],
                 'age': row[7],
                 'gender': row[8],
-                'phone_number': row[9]
+                'phone_number': row[9],
+                'status': row[10],
+                'otp': row[11],
+                'birth_date': row[12]
+
             }
             users.append(user)
 
@@ -1424,5 +1516,6 @@ def index():
 # Run the Flask application
 if __name__ == '__main__':
     # app.run(debug=True)
-    socketio.run(app, debug=True)
-
+    # socketio.run(app, host='192.168.100.147', port=5000, debug=True, cors_allowed_origins=["http://localhost:3000", "http://192.168.100.147"])
+    # socketio.run(app, host='192.168.100.147', port=5000, debug=True)
+    socketio.run(app, port=5000, debug=True)
