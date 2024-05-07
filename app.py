@@ -275,8 +275,8 @@ def request_document():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO document (requested_by_id, service, reason, status, description) VALUES (%s, %s, %s, %s, %s)",
-                   (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description']))
+        cursor.execute("INSERT INTO document (requested_by_id, service, reason, status, description, dateresponse) VALUES (%s, %s, %s, %s, %s, %s)",
+                   (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['dateresponse']))
         connection.commit()
 
         return jsonify({'data': 'Successfully registered'})
@@ -331,7 +331,8 @@ def get_all_request_document():
                 'status': row[4],
                 'description': row[5],
                 'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
-                'age': userc[7]
+                'age': userc[7],
+                'dateresponse': row[6]
 
             }
             concern.append(user)
@@ -354,8 +355,8 @@ def update_request_document():
 
     # Execute the query
     
-    query = "UPDATE document SET requested_by_id=%s, service=%s, reason=%s, status=%s, description=%sWHERE id=%s"
-    cursor.execute(query, (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['id']))
+    query = "UPDATE document SET requested_by_id=%s, service=%s, reason=%s, status=%s, description=%s, dateresponse=%s WHERE id=%s"
+    cursor.execute(query, (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['dateresponse'], user_data['id']))
     connection.commit()
 
     return jsonify({'data': 'Successfully update'})      
