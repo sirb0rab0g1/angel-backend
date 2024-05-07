@@ -161,7 +161,9 @@ def get_concerns():
                 'name_reported': row[2],
                 'reason': row[3],
                 'schedule_hearing': row[4],
-                'title': row[5]
+                'title': row[5],
+                'status': row[7],
+                'dateapproved': row[8]
             }
             concern.append(user)
 
@@ -199,6 +201,8 @@ def search_concerns():
             'reason': row[3],
             'schedule_hearing': row[4],
             'title': row[5],
+            'status': row[7],
+            'dateapproved': row[8]
         }
         concern.append(user)
 
@@ -445,44 +449,20 @@ def get_all_concerns_original():
             'title': row[5],
             'query_by_user': row[6],
             'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+            'status': row[7],
+            'dateapproved': row[8]
         }
         concern.append(user)
 
     return jsonify(concern)
 
-@app.route('/search-admin-concerns', methods=['POST'])
-def search_admin_concerns():
+@app.route('/search-admin-contactus', methods=['POST'])
+def search_admin_contactus():
     user_data = request.get_json()
     cursor = connection.cursor()
     cursors = connection.cursor()
 
     try:
-        # Execute the query
-        # query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s "
-        # search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
-        # cursor.execute(query, (search_value, search_value))
-        
-        # # Fetch all the rows
-        # rows = cursor.fetchall()
-
-        # # Convert the rows to a list of dictionaries
-        # concern = []
-        # for row in rows:
-        #     querys = "SELECT * FROM users WHERE id=%s"
-        #     cursors.execute(querys, (int(row[1])))
-        #     userc = cursors.fetchall()[0]
-        #     user = {
-        #         'id': row[0],
-        #         'requested_by_user_id': row[1],
-        #         'name_reported': row[2],
-        #         'reason': row[3],
-        #         'schedule_hearing': row[4],
-        #         'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
-        #         'title': row[5],
-        #         'query_by_user': row[6],
-        #     }
-        #     concern.append(user)
-
         query = "SELECT * FROM contactus WHERE name LIKE %s OR mobilenumber LIKE %s ORDER BY id DESC"
         search_value = f"%{user_data['search']}%"
         cursor.execute(query, (search_value, search_value))
@@ -500,6 +480,69 @@ def search_admin_concerns():
                 'date': row[5]
             }
             concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
+@app.route('/search-admin-concerns', methods=['POST'])
+def search_admin_concerns():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+    cursors = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s "
+        search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
+        cursor.execute(query, (search_value, search_value))
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            querys = "SELECT * FROM users WHERE id=%s"
+            cursors.execute(querys, (int(row[1])))
+            userc = cursors.fetchall()[0]
+            user = {
+                'id': row[0],
+                'requested_by_user_id': row[1],
+                'name_reported': row[2],
+                'reason': row[3],
+                'schedule_hearing': row[4],
+                'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
+                'title': row[5],
+                'query_by_user': row[6],
+                'status': row[7],
+                'dateapproved': row[8]
+            }
+            concern.append(user)
+
+        # query = "SELECT * FROM contactus WHERE name LIKE %s OR mobilenumber LIKE %s ORDER BY id DESC"
+        # search_value = f"%{user_data['search']}%"
+        # cursor.execute(query, (search_value, search_value))
+
+        # rows = cursor.fetchall()
+        # concern = []
+        # for row in rows:
+        #     print(row)
+        #     user = {
+        #         'id': row[0],
+        #         'name': row[1],
+        #         'mobilenumber': row[2],
+        #         'email': row[3],
+        #         'message': row[4],
+        #         'date': row[5]
+        #     }
+        #     concern.append(user)
 
         return jsonify(concern)
 
@@ -713,6 +756,27 @@ def update_report_user():
         # cursor.execute("INSERT INTO notification (modify_by_user, description, status, requested_by_user_id, scheduled_date, title, is_read) VALUES (%s, %s, %s, %s, %s, %s, %s)",
         #            (user_data['modify_by_user'], user_data['description'], user_data['status'], user_data['requested_by_user_id'], user_data['schedule_hearing'], user_data['title'], user_data['is_read']))
         # connection.commit()
+
+        return jsonify({'data': 'Successfully update'})
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close() 
+
+@app.route('/update-report-user-done', methods=['POST'])
+def update_report_user_done():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # update status
+        query = "UPDATE concern SET status=%s, dateapproved=%s WHERE id=%s"
+        cursor.execute(query, (user_data['status'], user_data['dateapproved'], user_data['id']))
+        connection.commit()
 
         return jsonify({'data': 'Successfully update'})
 
