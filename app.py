@@ -1587,5 +1587,5 @@ def index():
 if __name__ == '__main__':
     # app.run(debug=True)
     # socketio.run(app, host='192.168.100.147', port=5000, debug=True, cors_allowed_origins=["http://localhost:3000", "http://192.168.100.147"])
-    socketio.run(app, host='20.189.115.250', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
     # socketio.run(app, port=5000, debug=True, allow_unsafe_werkzeug=True)
