@@ -16,7 +16,7 @@ from user_agents import parse
 import hashlib
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://192.168.100.147:3000", "http://192.168.100.186:3000", "http://20.189.115.250", "http://barangaytresdemayo.online"]}})
 socketio = SocketIO(app, logger=True, engineio_logger=True, cors_allowed_origins=["http://localhost:3000", "http://192.168.100.186:3000", "http://192.168.1.16:3000", "http://20.189.115.250", "http://barangaytresdemayo.online"])
 #http://localhost/phpmyadmin
