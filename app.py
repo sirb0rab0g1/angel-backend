@@ -60,7 +60,7 @@ def handle_disconnect():
 
 
 ############### UPLOAD IMAGE ###################
-@app.route('/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'})
@@ -81,7 +81,7 @@ def upload_file():
 
         return jsonify({'success': True, 'filename': filename})
 
-@app.route('/announcement-upload', methods=['POST'])
+@app.route('/api/announcement-upload', methods=['POST'])
 def announcement_upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'})
@@ -103,12 +103,12 @@ def announcement_upload():
         return jsonify({'success': True, 'filename': filename})
 
 
-@app.route('/uploads/<filename>')
+@app.route('/api/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 ############### USERS ###################
-@app.route('/users', methods=['GET'])
+@app.route('/api/users', methods=['GET'])
 def get_users():
     # Create a cursor
     cursor = connection.cursor()
@@ -142,7 +142,7 @@ def get_users():
         # Close the cursor
         cursor.close()
 
-@app.route('/get-concerns', methods=['POST'])
+@app.route('/api/get-concerns', methods=['POST'])
 def get_concerns():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -178,7 +178,7 @@ def get_concerns():
         # Close the cursor
         cursor.close()
 
-@app.route('/search-concerns', methods=['POST'])
+@app.route('/api/search-concerns', methods=['POST'])
 def search_concerns():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -210,7 +210,7 @@ def search_concerns():
 
     return jsonify(concern)
 
-@app.route('/report-user', methods=['POST'])
+@app.route('/api/report-user', methods=['POST'])
 def report_user():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -230,7 +230,7 @@ def report_user():
         # Close the cursor
         cursor.close()         
 
-@app.route('/get-notification', methods=['POST'])
+@app.route('/api/get-notification', methods=['POST'])
 def get_notification():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -258,7 +258,7 @@ def get_notification():
 
     return jsonify(concern)
 
-@app.route('/update-notification', methods=['POST'])
+@app.route('/api/update-notification', methods=['POST'])
 def update_notification():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -271,7 +271,7 @@ def update_notification():
 
     return jsonify({'data': 'Successfully update'})
 
-@app.route('/request-document', methods=['POST'])
+@app.route('/api/request-document', methods=['POST'])
 def request_document():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -291,7 +291,7 @@ def request_document():
         # Close the cursor
         cursor.close()   
 
-@app.route('/get-all-request-document', methods=['POST'])
+@app.route('/api/get-all-request-document', methods=['POST'])
 def get_all_request_document():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -350,7 +350,7 @@ def get_all_request_document():
         cursor.close()
 
 
-@app.route('/update-request-document', methods=['POST'])
+@app.route('/api/update-request-document', methods=['POST'])
 def update_request_document():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -364,7 +364,7 @@ def update_request_document():
     return jsonify({'data': 'Successfully update'})      
 
 ############### ADMIN ###################
-@app.route('/get-all-concerns-count', methods=['GET'])
+@app.route('/api/get-all-concerns-count', methods=['GET'])
 def get_all_concerns_count():
     cursor = connection.cursor()
 
@@ -377,7 +377,7 @@ def get_all_concerns_count():
 
     return jsonify({'data': result})
 
-@app.route('/get-all-users-count', methods=['GET'])
+@app.route('/api/get-all-users-count', methods=['GET'])
 def get_all_users_count():
     cursor = connection.cursor()
 
@@ -390,7 +390,7 @@ def get_all_users_count():
 
     return jsonify({'data': result})
 
-@app.route('/get-all-barangays-count', methods=['GET'])
+@app.route('/api/get-all-barangays-count', methods=['GET'])
 def get_all_barangays_count():
     cursor = connection.cursor()
 
@@ -404,7 +404,7 @@ def get_all_barangays_count():
     return jsonify({'data': result})
 
 
-@app.route('/get-all-concerns', methods=['GET'])
+@app.route('/api/get-all-concerns', methods=['GET'])
 def get_all_concerns():
     cursor = connection.cursor()
     cursors = connection.cursor()
@@ -428,7 +428,7 @@ def get_all_concerns():
 
     return jsonify(concern)
 
-@app.route('/get-all-concerns-original', methods=['GET'])
+@app.route('/api/get-all-concerns-original', methods=['GET'])
 def get_all_concerns_original():
     cursor = connection.cursor()
     cursors = connection.cursor()
@@ -459,7 +459,7 @@ def get_all_concerns_original():
 
     return jsonify(concern)
 
-@app.route('/search-admin-contactus', methods=['POST'])
+@app.route('/api/search-admin-contactus', methods=['POST'])
 def search_admin_contactus():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -494,7 +494,7 @@ def search_admin_contactus():
         # Close the cursor
         cursor.close()
 
-@app.route('/search-admin-concerns', methods=['POST'])
+@app.route('/api/search-admin-concerns', methods=['POST'])
 def search_admin_concerns():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -557,7 +557,7 @@ def search_admin_concerns():
         # Close the cursor
         cursor.close()
 
-@app.route('/create-barangay', methods=['POST'])
+@app.route('/api/create-barangay', methods=['POST'])
 def create_barangay():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -577,7 +577,7 @@ def create_barangay():
         # Close the cursor
         cursor.close()
 
-@app.route('/update-barangay', methods=['POST'])
+@app.route('/api/update-barangay', methods=['POST'])
 def update_barangay():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -597,7 +597,7 @@ def update_barangay():
         # Close the cursor
         cursor.close()
 
-@app.route('/delete-barangay', methods=['POST'])
+@app.route('/api/delete-barangay', methods=['POST'])
 def delete_barangay():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -620,7 +620,7 @@ def delete_barangay():
         # Close the cursor
         cursor.close()
 
-@app.route('/get-all-barangay', methods=['GET'])
+@app.route('/api/get-all-barangay', methods=['GET'])
 def get_all_barangay():
     cursor = connection.cursor()
 
@@ -651,7 +651,7 @@ def get_all_barangay():
         # Close the cursor
         cursor.close()
 
-@app.route('/get-users-in-barangay', methods=['POST'])
+@app.route('/api/get-users-in-barangay', methods=['POST'])
 def get_users_in_barangay(): 
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -692,7 +692,7 @@ def get_users_in_barangay():
         cursor.close()
 
 
-@app.route('/search-barangay', methods=['POST'])
+@app.route('/api/search-barangay', methods=['POST'])
 def search_barangay():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -732,7 +732,7 @@ def search_barangay():
         # Close the cursor
         cursor.close()
 
-@app.route('/send-sms', methods=['POST'])
+@app.route('/api/send-sms', methods=['POST'])
 def send_sms():
     user_data = request.get_json()
     message = client.messages.create(
@@ -742,7 +742,7 @@ def send_sms():
     )
     return jsonify({'data': 'Message Successfully sent'})
 
-@app.route('/update-report-user', methods=['POST'])
+@app.route('/api/update-report-user', methods=['POST'])
 def update_report_user():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -770,7 +770,7 @@ def update_report_user():
         # Close the cursor
         cursor.close() 
 
-@app.route('/update-report-user-done', methods=['POST'])
+@app.route('/api/update-report-user-done', methods=['POST'])
 def update_report_user_done():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -791,7 +791,7 @@ def update_report_user_done():
         # Close the cursor
         cursor.close() 
 
-@app.route('/create-event', methods=['POST'])
+@app.route('/api/create-event', methods=['POST'])
 def create_event():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -815,7 +815,7 @@ def create_event():
         # Close the cursor
         cursor.close()
 
-@app.route('/search-event', methods=['POST'])
+@app.route('/api/search-event', methods=['POST'])
 def search_event():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -858,7 +858,7 @@ def search_event():
         # Close the cursor
         cursor.close()
 
-@app.route('/delete-event', methods=['POST'])
+@app.route('/api/delete-event', methods=['POST'])
 def delete_event():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -881,7 +881,7 @@ def delete_event():
         # Close the cursor
         cursor.close()
 
-@app.route('/get-all-events', methods=['GET'])
+@app.route('/api/get-all-events', methods=['GET'])
 def get_all_events():
     cursor = connection.cursor()
 
@@ -915,7 +915,7 @@ def get_all_events():
         # Close the cursor
         cursor.close()
 
-@app.route('/create-announcement', methods=['POST'])
+@app.route('/api/create-announcement', methods=['POST'])
 def create_announcement():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -941,7 +941,7 @@ def create_announcement():
 
 
 
-@app.route('/get-all-announcements', methods=['GET'])
+@app.route('/api/get-all-announcements', methods=['GET'])
 def get_all_announcements():
     cursor = connection.cursor()
 
@@ -975,7 +975,7 @@ def get_all_announcements():
         # Close the cursor
         cursor.close()
 
-@app.route('/search-announcement', methods=['POST'])
+@app.route('/api/search-announcement', methods=['POST'])
 def search_announcement():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1018,7 +1018,7 @@ def search_announcement():
         # Close the cursor
         cursor.close()
 
-@app.route('/delete-announcement', methods=['POST'])
+@app.route('/api/delete-announcement', methods=['POST'])
 def delete_announcement():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1041,7 +1041,7 @@ def delete_announcement():
         # Close the cursor
         cursor.close()
 
-@app.route('/create-history', methods=['POST'])
+@app.route('/api/create-history', methods=['POST'])
 def create_history():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1061,7 +1061,7 @@ def create_history():
         # Close the cursor
         cursor.close()
 
-@app.route('/delete-history', methods=['POST'])
+@app.route('/api/delete-history', methods=['POST'])
 def delete_history():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1084,7 +1084,7 @@ def delete_history():
         # Close the cursor
         cursor.close()
 
-@app.route('/update-history', methods=['POST'])
+@app.route('/api/update-history', methods=['POST'])
 def update_history():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1104,7 +1104,7 @@ def update_history():
         # Close the cursor
         cursor.close()
 
-@app.route('/search-history', methods=['POST'])
+@app.route('/api/search-history', methods=['POST'])
 def search_history():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1144,7 +1144,7 @@ def search_history():
         # Close the cursor
         cursor.close()
 
-@app.route('/get-all-history', methods=['GET'])
+@app.route('/api/get-all-history', methods=['GET'])
 def get_all_history():
     cursor = connection.cursor()
 
@@ -1175,7 +1175,7 @@ def get_all_history():
         # Close the cursor
         cursor.close()
 
-@app.route('/create-goals', methods=['POST'])
+@app.route('/api/create-goals', methods=['POST'])
 def create_goal():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1195,7 +1195,7 @@ def create_goal():
         # Close the cursor
         cursor.close()
 
-@app.route('/delete-goals', methods=['POST'])
+@app.route('/api/delete-goals', methods=['POST'])
 def delete_goals():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1218,7 +1218,7 @@ def delete_goals():
         # Close the cursor
         cursor.close()
 
-@app.route('/update-goals', methods=['POST'])
+@app.route('/api/update-goals', methods=['POST'])
 def update_goals():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1238,7 +1238,7 @@ def update_goals():
         # Close the cursor
         cursor.close()
 
-@app.route('/search-goals', methods=['POST'])
+@app.route('/api/search-goals', methods=['POST'])
 def search_goals():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1288,7 +1288,7 @@ def search_goals():
         # Close the cursor
         cursor.close()
 
-@app.route('/get-all-goals', methods=['GET'])
+@app.route('/api/get-all-goals', methods=['GET'])
 def get_all_goals():
     cursor = connection.cursor()
 
@@ -1321,7 +1321,7 @@ def get_all_goals():
         # Close the cursor
         cursor.close()
 
-@app.route('/create-contact-us', methods=['POST'])
+@app.route('/api/create-contact-us', methods=['POST'])
 def create_contact_us():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1341,7 +1341,7 @@ def create_contact_us():
         # Close the cursor
         cursor.close()
 
-@app.route('/get-all-users', methods=['GET'])
+@app.route('/api/get-all-users', methods=['GET'])
 def get_all_users():
     cursor = connection.cursor()
 
@@ -1379,7 +1379,7 @@ def get_all_users():
         # Close the cursor
         cursor.close()
 
-@app.route('/update-user-status', methods=['POST'])
+@app.route('/api/update-user-status', methods=['POST'])
 def update_user_status():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1399,7 +1399,7 @@ def update_user_status():
         cursor.close()
 ############### AUTHS ###################
 
-@app.route('/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register_user():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1445,7 +1445,7 @@ def register_user():
         # Close the cursor
         cursor.close()   
 
-@app.route('/update-user-profile', methods=['POST'])
+@app.route('/api/update-user-profile', methods=['POST'])
 def update_user_profile():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1456,7 +1456,7 @@ def update_user_profile():
     
     return jsonify({'data': 'Profile Successfully updated'})
       
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     # user_agent_string = request.headers.get('User-Agent')
     # user_agent = parse(user_agent_string)
@@ -1541,7 +1541,7 @@ def login():
         # Close the cursor
         cursor.close()
 
-@app.route('/validate-otp-login', methods=['POST'])
+@app.route('/api/validate-otp-login', methods=['POST'])
 def validate_otp_login():
     user_data = request.get_json()
     cursor = connection.cursor()
@@ -1579,7 +1579,7 @@ def validate_otp_login():
         # Close the cursor
         cursor.close()
 
-@app.route('/')
+@app.route('/api/')
 def index():
     return 'Index Page'
 
@@ -1587,5 +1587,5 @@ def index():
 if __name__ == '__main__':
     # app.run(debug=True)
     # socketio.run(app, host='192.168.100.147', port=5000, debug=True, cors_allowed_origins=["http://localhost:3000", "http://192.168.100.147"])
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, port=5000, debug=True)
     # socketio.run(app, port=5000, debug=True, allow_unsafe_werkzeug=True)
