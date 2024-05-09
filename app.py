@@ -25,7 +25,9 @@ socketio = SocketIO(app, logger=True, engineio_logger=True, cors_allowed_origins
 db_config = {
     'host': 'localhost',
     'user': 'root',
-    'database': 'helpdesk'
+    'database': 'helpdesk',
+    #for deployment
+    'password': 'p@ssw0rd12345'
 }
 connection = pymysql.connect(**db_config)
 cursor = connection.cursor()
