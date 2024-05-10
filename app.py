@@ -216,8 +216,8 @@ def report_user():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO concern (requested_by_user_id, name_reported, reason, title, query_by_user) VALUES (%s, %s, %s, %s, %s)",
-                   (user_data['requested_by_user_id'], user_data['name_reported'], user_data['reason'], user_data['title'], user_data['query_by_user']))
+        cursor.execute("INSERT INTO concern (requested_by_user_id, name_reported, reason, title, query_by_user, status, dateapproved) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                   (user_data['requested_by_user_id'], user_data['name_reported'], user_data['reason'], user_data['title'], user_data['query_by_user'], user_data['status'], user_data['dateapproved']))
         connection.commit()
 
         return jsonify({'data': 'Successfully registered'})
