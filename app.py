@@ -321,9 +321,13 @@ def get_all_request_document():
         concern = []
         for row in rows:
             querys = "SELECT * FROM users WHERE id=%s"
-            cursors.execute(querys, (int(row[1])))
-            userc = cursors.fetchall()[0]
+            #cursors.execute(querys, (int(row[1])))
+            cursors.execute(querys, (row[1],))
+            userc = cursors.fetchone()
             print(userc)
+
+            if not userc:
+                continue  # Skip this document if the user is not found
 
             user = {
                 'id': row[0],
@@ -348,6 +352,7 @@ def get_all_request_document():
     finally:
         # Close the cursor
         cursor.close()
+        cursors.close()
 
 
 @app.route('/api/update-request-document', methods=['POST'])
