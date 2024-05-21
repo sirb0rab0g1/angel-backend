@@ -1346,6 +1346,47 @@ def create_contact_us():
         # Close the cursor
         cursor.close()
 
+@app.route('/api/search-all-users', methods=['GET'])
+def search_all_users():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    try:
+        # Execute the query
+        query = "SELECT * FROM users WHERE first_name LIKE %s OR last_name LIKE %s ORDER BY id DESC"
+        search_value = f"%{user_data['search']}%"
+        cursor.execute(query, (search_value, search_value))
+        
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Convert the rows to a list of dictionaries
+        concern = []
+        for row in rows:
+            user = {
+                'id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'username': row[3],
+                'age': row[7],
+                'gender': row[8],
+                'phone_number': row[9],
+                'status': row[10],
+                'birth_date': row[12]
+
+            }
+            concern.append(user)
+
+        return jsonify(concern)
+
+    except Exception as e:
+        # Handle the exception
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        # Close the cursor
+        cursor.close()
+
 @app.route('/api/get-all-users', methods=['GET'])
 def get_all_users():
     cursor = connection.cursor()
@@ -1370,6 +1411,7 @@ def get_all_users():
                 'gender': row[8],
                 'phone_number': row[9],
                 'status': row[10],
+                'birth_date': row[12]
 
             }
             concern.append(user)
