@@ -1346,7 +1346,7 @@ def create_contact_us():
         # Close the cursor
         cursor.close()
 
-@app.route('/api/search-all-users', methods=['GET'])
+@app.route('/api/search-all-users', methods=['POST'])
 def search_all_users():
     user_data = request.get_json()
     cursor = connection.cursor()
