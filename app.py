@@ -1362,6 +1362,7 @@ def search_all_users():
 
         # Convert the rows to a list of dictionaries
         concern = []
+        print(rows)
         for row in rows:
             user = {
                 'id': row[0],
