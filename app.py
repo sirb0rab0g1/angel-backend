@@ -433,6 +433,10 @@ def get_all_concerns():
 
     return jsonify(concern)
 
+IndexError: tuple index out of range
+
+
+
 @app.route('/api/get-all-concerns-original', methods=['GET'])
 def get_all_concerns_original():
     cursor = connection.cursor()
@@ -445,8 +449,12 @@ def get_all_concerns_original():
     concern = []
     for row in rows:
         querys = "SELECT * FROM users WHERE id=%s"
-        cursors.execute(querys, (int(row[1])))
+        cursors.execute(querys, (int(row[1], )))
         userc = cursors.fetchall()[0]
+
+        if userc is None:
+            # Handle the case where the user is not found
+            continue
 
         user = {
             'id': row[0],
