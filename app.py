@@ -433,10 +433,6 @@ def get_all_concerns():
 
     return jsonify(concern)
 
-IndexError: tuple index out of range
-
-
-
 @app.route('/api/get-all-concerns-original', methods=['GET'])
 def get_all_concerns_original():
     cursor = connection.cursor()
