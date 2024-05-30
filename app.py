@@ -849,7 +849,7 @@ def search_event():
                 'title': row[1],
                 'date': row[2],
                 'summary': row[3],
-                'image': 'http://localhost:5000/'+row[4]
+                'image': 'http://20.189.115.250/'+row[4]
             }
             concern.append(user)
 
@@ -1007,9 +1007,9 @@ def search_announcement():
             user = {
                 'id': row[0],
                 'title': row[1],
-                'datetime': row[2],
-                'description': row[3],
-                'image': 'http://localhost:5000/'+row[4]
+                'description': row[2],
+                'datetime': row[3],
+                'image': 'http://20.189.115.250/'+row[4]
             }
             concern.append(user)
 
