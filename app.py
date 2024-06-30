@@ -27,7 +27,7 @@ db_config = {
     'user': 'root',
     'database': 'helpdesk',
     #for deployment
-    'password': 'p@ssw0rd12345'
+    # 'password': 'p@ssw0rd12345'
 }
 connection = pymysql.connect(**db_config)
 cursor = connection.cursor()
@@ -438,7 +438,7 @@ def get_all_concerns_original():
     cursor = connection.cursor()
     cursors = connection.cursor()
 
-    query = "SELECT * FROM concern"
+    query = "SELECT * FROM concern ORDER BY id DESC"
     cursor.execute(query,)
 
     rows = cursor.fetchall()
@@ -511,7 +511,7 @@ def search_admin_concerns():
 
     try:
         # Execute the query
-        query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s "
+        query = "SELECT * FROM concern WHERE name_reported LIKE %s OR title LIKE %s ORDER BY id DESC"
         search_value = f"%{user_data['search']}%"  # This will be something like "%12345%"
         cursor.execute(query, (search_value, search_value))
         
