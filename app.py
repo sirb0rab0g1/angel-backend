@@ -27,7 +27,7 @@ db_config = {
     'user': 'root',
     'database': 'helpdesk',
     #for deployment
-    # 'password': 'p@ssw0rd12345'
+    'password': 'p@ssw0rd12345'
 }
 connection = pymysql.connect(**db_config)
 cursor = connection.cursor()
