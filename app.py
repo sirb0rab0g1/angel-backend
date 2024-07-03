@@ -27,7 +27,7 @@ db_config = {
     'user': 'root',
     'database': 'helpdesk',
     #for deployment
-    'password': 'p@ssw0rd12345'
+    # 'password': 'p@ssw0rd12345'
 }
 connection = pymysql.connect(**db_config)
 cursor = connection.cursor()
@@ -185,6 +185,7 @@ def get_concerns():
                 'reason': row[3],
                 'schedule_hearing': row[4],
                 'title': row[5],
+                'query_by_user': row[6],
                 'status': row[7],
                 'dateapproved': row[8]
             }
@@ -224,6 +225,7 @@ def search_concerns():
             'reason': row[3],
             'schedule_hearing': row[4],
             'title': row[5],
+            'query_by_user': row[6],
             'status': row[7],
             'dateapproved': row[8]
         }
@@ -310,7 +312,18 @@ def request_document():
 
     finally:
         # Close the cursor
-        cursor.close()   
+        cursor.close()
+
+# @app.route('/api/update-request-document', methods=['POST'])
+# def update_request_document():
+#     user_data = request.get_json()
+#     cursor = connection.cursor()
+
+#     # Execute the query
+    
+#     query = "UPDATE document SET service=%s, reason=%s, status=%s, scheduled_date=%s, description=%s, dateresponse=%s  WHERE id=%s"
+#     cursor.execute(query, (user_data['service'], user_data['reason'], user_data['status'], user_data['scheduled_date'], user_data['description'], user_data['dateresponse'], user_data['id']))
+#     connection.commit() 
 
 @app.route('/api/get-all-request-document', methods=['POST'])
 def get_all_request_document():
@@ -387,7 +400,33 @@ def update_request_document():
     cursor.execute(query, (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['dateresponse'], user_data['id']))
     connection.commit()
 
-    return jsonify({'data': 'Successfully update'})      
+    return jsonify({'data': 'Successfully update'})     
+
+@app.route('/api/delete-request-document', methods=['POST'])
+def delete_request_document():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    # Execute the query
+    
+    query = "DELETE FROM document WHERE id=%s"
+    cursor.execute(query, (user_data['id'],))
+    connection.commit()
+
+    return jsonify({'data': 'Successfully deleted'})
+
+@app.route('/api/delete-report-user', methods=['POST'])
+def delete_report_user():
+    user_data = request.get_json()
+    cursor = connection.cursor()
+
+    # Execute the query
+    
+    query = "DELETE FROM concern WHERE id=%s"
+    cursor.execute(query, (user_data['id'],))
+    connection.commit()
+
+    return jsonify({'data': 'Successfully deleted'})    
 
 ############### ADMIN ###################
 @app.route('/api/get-all-concerns-count', methods=['GET'])
