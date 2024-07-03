@@ -81,6 +81,27 @@ def upload_file():
 
         return jsonify({'success': True, 'filename': filename})
 
+@app.route('/api/user-reg-upload', methods=['POST'])
+def user_reg_upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
+    
+    file = request.files['file']
+    eventid = request.form['userid']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+
+    if file:
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filename)
+
+        query = "UPDATE users SET image=%s  WHERE id=%s"
+        cursor.execute(query, (filename, eventid))
+        connection.commit()
+
+        return jsonify({'success': True, 'filename': filename})
+
 @app.route('/api/announcement-upload', methods=['POST'])
 def announcement_upload():
     if 'file' not in request.files:
@@ -1377,7 +1398,9 @@ def search_all_users():
                 'gender': row[8],
                 'phone_number': row[9],
                 'status': row[10],
-                'birth_date': row[12]
+                'birth_date': row[12],
+                'image': row[13],
+                'kindid': row[14]
 
             }
             concern.append(user)
@@ -1416,7 +1439,9 @@ def get_all_users():
                 'gender': row[8],
                 'phone_number': row[9],
                 'status': row[10],
-                'birth_date': row[12]
+                'birth_date': row[12],
+                'image': row[13],
+                'kindid': row[14]
 
             }
             concern.append(user)
@@ -1457,8 +1482,8 @@ def register_user():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, birth_date, gender, phone_number, status, otp) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['birth_date'], user_data['gender'], user_data['phone_number'], user_data['status'], user_data['otp']))
+        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, birth_date, gender, phone_number, status, otp, image, kindid) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['birth_date'], user_data['gender'], user_data['phone_number'], user_data['status'], user_data['otp'], user_data['image'], user_data['kindid']))
         connection.commit()
 
         cursor.execute("SELECT LAST_INSERT_ID()")
