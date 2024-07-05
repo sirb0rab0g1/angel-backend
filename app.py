@@ -300,8 +300,8 @@ def request_document():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO document (requested_by_id, service, reason, status, description, dateresponse) VALUES (%s, %s, %s, %s, %s, %s)",
-                   (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['dateresponse']))
+        cursor.execute("INSERT INTO document (requested_by_id, service, reason, status, description, dateresponse, pickupdate) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                   (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['dateresponse'], user_data['pickupdate']))
         connection.commit()
 
         return jsonify({'data': 'Successfully registered'})
@@ -372,7 +372,8 @@ def get_all_request_document():
                 'description': row[5],
                 'requested_by_user': {'first_name': userc[1], 'last_name': userc[2]},
                 'age': userc[7],
-                'dateresponse': row[6]
+                'dateresponse': row[6],
+                'pickupdate': row[7]
 
             }
             concern.append(user)
@@ -396,8 +397,8 @@ def update_request_document():
 
     # Execute the query
     
-    query = "UPDATE document SET requested_by_id=%s, service=%s, reason=%s, status=%s, description=%s, dateresponse=%s WHERE id=%s"
-    cursor.execute(query, (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['dateresponse'], user_data['id']))
+    query = "UPDATE document SET requested_by_id=%s, service=%s, reason=%s, status=%s, description=%s, dateresponse=%s, pickupdate=%s WHERE id=%s"
+    cursor.execute(query, (user_data['requested_by_id'], user_data['service'], user_data['reason'], user_data['status'], user_data['description'], user_data['dateresponse'], user_data['pickupdate'], user_data['id']))
     connection.commit()
 
     return jsonify({'data': 'Successfully update'})     
