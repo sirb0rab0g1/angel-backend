@@ -27,7 +27,7 @@ db_config = {
     'user': 'root',
     'database': 'helpdesk',
     #for deployment
-    'password': 'p@ssw0rd12345'
+    # 'password': 'p@ssw0rd12345'
 }
 connection = pymysql.connect(**db_config)
 cursor = connection.cursor()
@@ -36,6 +36,14 @@ cursor = connection.cursor()
 account_sid = 'AC512d82f1fab10c761596c05accedb537'
 auth_token = 'f7b5bf0e78ec1258e41e8b1171683bb6'
 client = Client(account_sid, auth_token)
+
+#smtp
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email import encoders
+import smtplib
+from datetime import datetime
 
 # uploading
 import os
@@ -58,6 +66,64 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')
 
+
+############### SMTP ###################
+@app.route('/api/send-otp-email', methods=['POST'])
+def sendotpemail():
+    user_data = request.get_json()
+    
+    # rec = payload.user.email #  'kentoyfueconcillo@gmail.com' # payload['user']['email']
+    rec = user_data['email']
+    # rec = payload.user.email
+
+    
+    message = MIMEMultipart('alternative')
+    message['Subject'] = 'Barangay Tres De Mayo OTP Verication' 
+    message['From'] = 'Barangay Tres De Mayo'
+    message['To'] = rec
+
+    html = """\
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Gmail</title>
+      </head>
+      <body>
+        <div style="font-family: 'Helvetica'; font-size: 12px; box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23); background-color: #fff; padding: 15px;">
+          <div width="100%" height="100%" style="padding: 15px 0px; position: relative; text-align: center;">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzJO5IkBbYdVRLCTa6omkFTmXfPNdJd92BSg&s" width="100px" data-holder-rendered="true" />
+          </div>
+          <div style="border: 1px solid #0D650E; padding: 20px">
+            <div style="padding: 10px 20px; background-color: #0D650E; color: #fff;">
+              <b>REMINDER!</b>
+            </div>
+            <br>
+            <div style="padding: 0px 20px;">
+              <span>Hi This is from Barangay Tres de mayo.</span>
+              <hr>
+              <p><b>NOTE: </b><br>
+                  This is you OTP """ +user_data['otp']+ """ . Please do not share this into anyone!.
+              </p>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+
+    message.attach(MIMEText(html, 'html'))
+    
+    # two way authentication solves the gmail issue in ssh
+    # https://support.google.com/accounts/answer/185833?p=InvalidSecondFactor&visit_id=637080027265884993-1110728592&rd=1
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login('aeontowertest@gmail.com', 'eicrqxdkmpndicus') # original password is Pasmo.123
+    server.sendmail('aeontowertest@gmail.com', rec, message.as_string()) # single tsending
+    server.quit()
+
+    return jsonify({'data': 'OTP Successfully Sent via Email.'})
 
 ############### UPLOAD IMAGE ###################
 @app.route('/api/upload', methods=['POST'])
