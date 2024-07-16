@@ -27,7 +27,7 @@ db_config = {
     'user': 'root',
     'database': 'helpdesk',
     #for deployment
-    # 'password': 'p@ssw0rd12345'
+    'password': 'p@ssw0rd12345'
 }
 connection = pymysql.connect(**db_config)
 cursor = connection.cursor()
@@ -1506,10 +1506,7 @@ def search_all_users():
                 'status': row[10],
                 'birth_date': row[12],
                 'image': row[13],
-                'kindid': row[14],
-                'address': row[15],
-                'civil_status': row[16],
-                'religion': row[17]
+                'kindid': row[14]
 
             }
             concern.append(user)
@@ -1550,10 +1547,7 @@ def get_all_users():
                 'status': row[10],
                 'birth_date': row[12],
                 'image': row[13],
-                'kindid': row[14],
-                'address': row[15],
-                'civil_status': row[16],
-                'religion': row[17]
+                'kindid': row[14]
 
             }
             concern.append(user)
@@ -1594,8 +1588,8 @@ def register_user():
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, birth_date, gender, phone_number, status, otp, image, kindid, address, civil_status, religion) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['birth_date'], user_data['gender'], user_data['phone_number'], user_data['status'], user_data['otp'], user_data['image'], user_data['kindid'], user_data['address'], user_data['civil_status'], user_data['religion']))
+        cursor.execute("INSERT INTO users (first_name, last_name, username, password, role, barangay, age, birth_date, gender, phone_number, status, otp, image, kindid) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                   (user_data['first_name'], user_data['last_name'], user_data['username'], user_data['password'], user_data['role'], user_data['barangay'], user_data['age'], user_data['birth_date'], user_data['gender'], user_data['phone_number'], user_data['status'], user_data['otp'], user_data['image'], user_data['kindid']))
         connection.commit()
 
         cursor.execute("SELECT LAST_INSERT_ID()")
@@ -1639,8 +1633,8 @@ def update_user_profile():
     user_data = request.get_json()
     cursor = connection.cursor()
 
-    query = "UPDATE users SET first_name=%s, last_name=%s, username=%s, password=%s, role=%s, barangay=%s, age=%s, gender=%s, phone_number=%s, birth_date=%s, kindid=%s, address=%s , civil_status=%s , religion=%s WHERE id=%s"
-    cursor.execute(query, (user_data['first_name'],user_data['last_name'],user_data['username'],user_data['password'],user_data['role'],user_data['barangay'],user_data['age'],user_data['gender'],user_data['phone_number'],user_data['birth_date'],user_data['kindid'],user_data['address'],user_data['civil_status'],user_data['religion'],user_data['id']))
+    query = "UPDATE users SET first_name=%s, last_name=%s, username=%s, password=%s, role=%s, barangay=%s, age=%s, gender=%s, phone_number=%s WHERE id=%s"
+    cursor.execute(query, (user_data['first_name'],user_data['last_name'],user_data['username'],user_data['password'],user_data['role'],user_data['barangay'],user_data['age'],user_data['gender'],user_data['phone_number'],user_data['id']))
     connection.commit()
     
     return jsonify({'data': 'Profile Successfully updated'})
@@ -1712,12 +1706,7 @@ def login():
                 'phone_number': row[9],
                 'status': row[10],
                 'otp': row[11],
-                'birth_date': row[12],
-                'image': row[13],
-                'kindid': row[14],
-                'address': row[15],
-                'civil_status': row[16],
-                'religion': row[17]
+                'birth_date': row[12]
 
             }
             users.append(user)
